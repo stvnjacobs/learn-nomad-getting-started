@@ -1,0 +1,14 @@
+#region      = "LINODE_REGION"
+region      = "eu-west"
+
+# These variables will default to the values shown
+# and do not need to be updated unless you want to
+# change them
+# allowlist_ip            = "0.0.0.0/0"
+# name                    = "nomad"
+# server_instance_type    = "g6-standard-1"
+# server_count            = "3"
+# client_instance_type    = "g6-nanode-1"
+# client_count            = "2"
+# root_block_device_size  = 16
+# nomad_version           = "1.5.0"

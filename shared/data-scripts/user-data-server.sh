@@ -38,6 +38,27 @@ case $CLOUD_ENV in
     IP_ADDRESS=$(curl -s -H Metadata:true --noproxy "*" http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0?api-version=2021-12-13 | jq -r '.["privateIpAddress"]')
     ;;
 
+  akamai)
+    echo "CLOUD_ENV: akamai"
+    sudo apt-get update && sudo apt-get install -y software-properties-common jq
+    TOKEN=$(curl -s -X PUT -H "Metadata-Token-Expiry-Seconds: 3600" http://169.254.169.254/v1/token)
+    IP_ADDRESS=$(curl -s -H "Metadata-Token: $TOKEN" -H "Accept: application/json" http://169.254.169.254/v1/network | jq -r '.ipv4.private[0]' | sed 's/\/[0-9]*$//')
+
+    sudo mkdir /etc/linode
+    sudo chmod 0755 /etc/linode
+    sudo tee /etc/systemd/system/nomad.service.d/override.conf <<EOF >/dev/null
+LINODE_URL=${linode_url}
+LINODE_TOKEN=${linode_token}
+EOF
+
+    sudo mkdir -p /etc/systemd/system/nomad.service.d
+    sudo chmod 0755 /etc/systemd/system/nomad.service.d
+    sudo tee /etc/systemd/system/nomad.service.d/override.conf <<EOF >/dev/null
+[Service]
+EnvironmentFile=/etc/linode/environment
+EOF
+    ;;
+
   *)
     exit "CLOUD_ENV not set to one of aws, gce, or azure - exiting."
     ;;
@@ -73,8 +94,8 @@ sudo apt-get update
 sudo apt-get install -y docker-ce
 
 # Java
-sudo add-apt-repository -y ppa:openjdk-r/ppa
-sudo apt-get update 
+#sudo add-apt-repository -y ppa:openjdk-r/ppa
+#sudo apt-get update
 sudo apt-get install -y openjdk-8-jdk
 JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")
 
